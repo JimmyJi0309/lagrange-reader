@@ -39,7 +39,7 @@ ALLOWED_EXACT = {
     "a-",
     "a+",
 }
-IGNORE_MARKER = "// i18n-ignore"
+IGNORE_MARKER = re.compile(r"//\s*i18n-ignore(?::\s*(?P<reason>\S.*))?")
 TECHNICAL_LITERAL = re.compile(
     r"^(?:"
     r"https?://\S*|content://\S*|file://\S*|"
@@ -59,7 +59,10 @@ class Finding:
 def is_hardcoded_ui_string(line: str) -> bool:
     """Return True when a source line contains an obvious hardcoded UI literal."""
     code = line.strip()
-    if not code or code.startswith("//") or IGNORE_MARKER in code:
+    if not code or code.startswith("//"):
+        return False
+    ignored = IGNORE_MARKER.search(code)
+    if ignored and ignored.group("reason") and ignored.group("reason").strip():
         return False
     if "stringResource(" in code or "getString(" in code or "R.string." in code:
         return False
@@ -71,7 +74,7 @@ def is_hardcoded_ui_string(line: str) -> bool:
     literal = match.group(1).strip()
     if not literal:
         return False
-    if literal.lower() in ALLOWED_EXACT or literal.lower().startswith("lagrange"):
+    if literal.lower() in ALLOWED_EXACT:
         return False
     if TECHNICAL_LITERAL.fullmatch(literal):
         return False
@@ -107,6 +110,8 @@ def check_diff(base: str) -> list[Finding]:
         "diff",
         "--unified=0",
         "--no-color",
+        "--no-ext-diff",
+        "--no-textconv",
         "--diff-filter=AMR",
         f"{base}...HEAD",
         "--",

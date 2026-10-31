@@ -25,6 +25,7 @@ class HardcodedUiStringCheckTest(unittest.TestCase):
 
     def test_allows_brand_technical_and_symbol_literals(self):
         self.assertFalse(is_hardcoded_ui_string('        Text("Lagrange")'))
+        self.assertTrue(is_hardcoded_ui_string('        Text("Lagrange is ready")'))
         self.assertFalse(is_hardcoded_ui_string('        title = "https://example.com"'))
         self.assertFalse(is_hardcoded_ui_string('        title = "application/epub+zip"'))
         self.assertFalse(is_hardcoded_ui_string('        Text("A+")'))
@@ -33,6 +34,9 @@ class HardcodedUiStringCheckTest(unittest.TestCase):
     def test_allows_explicit_ignore_marker(self):
         self.assertFalse(
             is_hardcoded_ui_string('        Text("custom value") // i18n-ignore: test fixture')
+        )
+        self.assertTrue(
+            is_hardcoded_ui_string('        Text("custom value") // i18n-ignore')
         )
 
     def test_does_not_flag_non_ui_literals(self):
