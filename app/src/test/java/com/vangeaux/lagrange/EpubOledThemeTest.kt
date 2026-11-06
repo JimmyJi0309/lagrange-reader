@@ -167,6 +167,15 @@ class EpubOledThemeTest {
     }
 
     @Test
+    fun `image layout normalizer covers large inline svg elements`() {
+        val script = readiumEpubImageLayoutScript()
+
+        assertTrue(script.contains("tagName.toLowerCase() === 'svg'"))
+        assertTrue(script.contains("viewBox"))
+        assertTrue(script.contains("naturalWidth"))
+    }
+
+    @Test
     fun `image color preservation script stays free of theme styling`() {
         val script = readiumEpubImageColorOverrideScript()
 

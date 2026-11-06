@@ -1664,8 +1664,21 @@ internal fun readiumEpubImageLayoutScript(): String = """
         const pageWidth = Math.floor(viewportWidth / columns) - 8;
         const pageHeight = Math.max(1, window.innerHeight * 0.95);
         if (!Number.isFinite(pageWidth) || pageWidth < 32 || !Number.isFinite(pageHeight)) return;
+        const isLargeMedia = (media) => {
+          if (media.tagName && media.tagName.toLowerCase() === 'svg') {
+            const rect = media.getBoundingClientRect();
+            const viewBox = media.viewBox && media.viewBox.baseVal;
+            return Math.max(
+              rect.width || 0,
+              rect.height || 0,
+              (viewBox && viewBox.width) || 0,
+              (viewBox && viewBox.height) || 0
+            ) >= 512;
+          }
+          return (media.naturalWidth || 0) >= 512 || (media.naturalHeight || 0) >= 512;
+        };
         document.querySelectorAll('img, svg').forEach((media) => {
-          if ((media.naturalWidth || 0) < 512 && (media.naturalHeight || 0) < 512) return;
+          if (!isLargeMedia(media)) return;
           media.style.setProperty('display', 'block', 'important');
           media.style.setProperty('width', 'auto', 'important');
           media.style.setProperty('height', 'auto', 'important');
